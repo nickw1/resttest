@@ -4,35 +4,45 @@
 <script type='module' src='index.js'></script>
 <style type='text/css'>
 body {
-	font-family: helvetica, arial, sans-serif;
+    font-family: helvetica, arial, sans-serif;
+    background-color: #8080c0;
+    color: white;
 }
 
 #response {
-	font-family: monospace;
+    font-family: monospace;
 }
 
 .code2 {
-	color: green;
+    background-color: green;
 }
 
 .code4, .code5 {
-	color: red;
+    background-color: red;
 }
 </style>
 </head>
 <body>
 <h1>REST Tester</h1>
 <label for='url'>URL:</label><br />
-<input id='url' style='width: 50%' /> <br />
+<input id='url' style='width: 50%' value='http://localhost:3000'/> <br />
 <label for='method'>HTTP Method:</label><br />
 <select id='method'>
 <option>GET</option>
-<option>POST</option>
+<option selected>POST</option>
+<option>PUT</option>
 <option>DELETE</option>
+<option>ZARG</option>
 </select>
 <br />
-<label for='requestbody'>Request body:</label><br />
-<input id='requestbody' style='width: 50%' />
+Content type of request body: <br />
+<select id='contentType' style='width: 50%' />
+<option>application/json</option>
+<option>application/x-www-form-urlencoded</option>
+</select>
+<br />
+<label for='requestBody'>Request body:</label><br />
+<textarea id='requestBody' style='width: 50%; height: 200px'></textarea>
 <br />
 <input type='button' id='send' value='Send!' />
 <div id='response' style='1px solid black; width: 100%; height: 400px; overflow: auto'></div>
