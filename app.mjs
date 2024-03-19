@@ -5,37 +5,41 @@ const app = express();
 app.use(express.static('public'));
 app.use(express.json());
 
-app.get('/connect', async(req, res) => {
-    const response = await fetch(req.query.url);
-    res.status(response.status).set({'Content-Type': 'text/plain'});
-    response.body.pipe(res);
+let clientCookies = null;
 
-});
-
-app.delete('/connect', async(req, res) => {
-    const response = await fetch(req.body.url, {
-        method: 'DELETE'
-    });
-    res.status(response.status).set({'Content-Type': 'text/plain'});
-    response.body.pipe(res);
-});
 
 app.all('/connect', async(req, res) => {
-    if(["POST", "PUT"].indexOf(req.method) == -1) {
-        res.status(405).json({error:`Unrecognised method ${req.method}`});
-    } else {
-        const response = await fetch(req.body.url, {
-            method: req.method, 
-            body: req.body.contentType=='application/json' ? JSON.stringify(req.body.data): req.body.data,
-            headers: {
-                'Content-Type': req.body.contentType 
-            }
-        });
-        res.status(response.status).set({'Content-Type': 'text/plain'});
-        response.body.pipe(res);
+    const options = {
+        method: req.method,
+        headers: { }
+    };
+    if(clientCookies !== null) {
+        options.headers.accept = '*/*';
+        options.headers.cookie = clientCookies;
     }
+    const url = req.method == 'GET' ? req.query.url : req.body.url;
+    if(["POST", "PUT"].indexOf(req.method) > -1) {
+        options.body =  req.body.contentType=='application/json' ? JSON.stringify(req.body.data): req.body.data;
+        options.headers['Content-Type'] = req.body.contentType 
+    }
+    const response = await fetch(url, options);
+    res.status(response.status).set({'Content-Type': 'text/plain'});
+
+    const cookies = response.headers.raw()['set-cookie'];
+    if(cookies?.length > 0) {
+        clientCookies = cookies.map ( cookie => {
+            return cookie.split(';')[0];
+        }).join(';');
+    } else {
+        clientCookies = null;
+    }
+
+    const text = await response.text();
+    // https://developers.cloudflare.com/workers/examples/logging-headers
+    res.json({
+        "headers":Object.fromEntries(response.headers), 
+        "content": text
+    });
 });
-
-
 
 app.listen(3200);    
